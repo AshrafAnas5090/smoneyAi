@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Money Analyzer Pro - V22.4-QUOTA-PRO</title>
+<style>
+:root {
+  --bg: #070b10;
+  --panel: #0d1219;
+  --panel2: #0a1017;
+  --border: #1a2533;
+  --border-hover: #26364b;
+  --text: #e2e8f0;
+  --muted: #8b9bb0;
+  --blue: #2f7df4;
+  --green: #00e676;
+  --red: #ff5252;
+  --yellow: #ffd54f;
+  --purple: #a78bfa;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(47,125,244,0.05), transparent 40%), var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  direction: ltr;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #26364b; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+.app {
+  width: 99%;
+  max-width: 1900px;
+  margin: auto;
+  padding: 15px 0 60px;
+}
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 20px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
+  background: linear-gradient(135deg, #2f7df4, #00e676); font-weight: 900; font-size: 16px; color: #fff;
+  box-shadow: 0 4px 15px rgba(47,125,244,0.3);
+}
+.sub { margin: 0; color: var(--muted); font-size: 12px; }
+.range { padding: 6px 14px; border: 1px solid rgba(0,230,118,0.3); border-radius: 999px; color: var(--green); font-size: 11px; font-weight: 800; background: rgba(0,230,118,0.05); }
+
+.search {
+  display: flex; gap: 8px; padding: 10px; background: rgba(13,18,25,0.8);
+  border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+input {
+  flex: 1; height: 44px; padding: 0 16px; background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border); border-radius: 8px; color: #fff; outline: 0; font-size: 14px; font-weight: 600;
+  transition: all 0.2s;
+}
+input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47,125,244,0.15); }
+
+/* تأثيرات حركية دقيقة عند الضغط على الأزرار */
+button { 
+  cursor: pointer; 
+  font: inherit; 
+  font-weight: 800; 
+  border-radius: 8px; 
+  transition: transform 0.1s ease, background 0.2s, box-shadow 0.2s, filter 0.2s; 
+}
+button:active {
+  transform: scale(0.96) translateY(1px) !important;
+  filter: brightness(0.85);
+}
+
+.search-btn {
+  min-width: 140px; border: 0; background: linear-gradient(135deg, #2f7df4, #1d62ca); color: #fff; font-size: 13px;
+}
+.search-btn:hover { background: linear-gradient(135deg, #3b86f5, #246bdb); transform: translateY(-1px); }
+
+.status { min-height: 18px; margin: 0 5px 12px; font-size: 12px; font-weight: 600; }
+.status.ok { color: var(--green); } .status.err { color: var(--red); }
+
+.records { display: grid; gap: 15px; }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; background: rgba(13,20,28,.4); font-size: 14px; }
+
+.record-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+.record-header {
+  display: flex; justify-content: space-between; align-items: center; padding: 10px 14px;
+  background: rgba(255,255,255,0.015); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px;
+}
+.symbol-title { font-size: 18px; font-weight: 900; margin: 0; letter-spacing: 0.5px; color: #fff; }
+.header-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+.small-btn { padding: 5px 10px; font-size: 11px; border: 1px solid var(--border); background: transparent; color: #cbd5e1; border-radius: 6px; }
+.small-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
+.small-btn:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
+.small-btn.fetch { border-color: rgba(47,125,244,0.4); color: #9fc5ff; }
+.small-btn.del { border-color: rgba(255,82,82,0.4); color: #ffb8b5; }
+.small-btn.gemini { border-color: rgba(167,139,250,0.4); color: #d8b4fe; background: rgba(167,139,250,0.05); }
+.small-btn.gemini-compare { border-color: rgba(0,230,118,0.4); color: var(--green); background: rgba(0,230,118,0.05); }
+
+.timer-control { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; background: rgba(255,213,79,0.05); border: 1px solid rgba(255,213,79,0.2); border-radius: 6px; }
+.timer-badge { color: var(--yellow); font-size: 11px; font-weight: 800; font-family: 'Consolas', monospace; min-width: 45px; text-align: center; }
+.timer-badge.finished { color: var(--purple); }
+.interval-select { background: transparent; color: var(--yellow); border: none; font-size: 10px; font-weight: 800; outline: 0; cursor: pointer; }
+
+.table-container { overflow-x: auto; width: 100%; max-height: 600px; }
+table.logs-table {
+  width: 100%; border-collapse: collapse; min-width: 1700px; 
+  text-align: center;
+  font-family: 'Consolas', 'Menlo', monospace; font-size: 12px;
+  font-variant-numeric: tabular-nums; 
+}
+th {
+  position: sticky; top: 0; z-index: 10; 
+  background: rgba(9, 15, 23, 0.95); backdrop-filter: blur(5px);
+  color: var(--muted); padding: 10px 8px; font-size: 10px; text-transform: uppercase;
+  border-bottom: 1px solid var(--border-hover); letter-spacing: 0.5px; white-space: nowrap;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+td {
+  padding: 6px 10px; 
+  border-bottom: 1px solid rgba(255,255,255,0.03); color: #d1d5db; white-space: nowrap;
+  vertical-align: middle;
+}
+td:nth-child(1), th:nth-child(1) { text-align: left; }
+
+tr:last-child td { border-bottom: 0; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+.up { color: var(--green)!important; font-weight: 700; }
+.down { color: var(--red)!important; font-weight: 700; }
+.buy { color: var(--green)!important; font-weight: 600; }
+.sell { color: var(--red)!important; font-weight: 600; }
+.pos { color: #69b4ff!important; }
+.total-col { color: var(--yellow)!important; font-weight: 800; background: rgba(255,213,79,0.03); border-left: 1px solid rgba(255,255,255,0.02); border-right: 1px solid rgba(255,255,255,0.02); }
+
+.actions-cell { display: flex; gap: 4px; justify-content: center; }
+.row-btn { padding: 3px 6px; font-size: 10px; border-radius: 4px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); color: var(--muted); transition: all 0.2s; }
+.row-btn:hover { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+<div class="brand">
+  <div class="logo">SM</div>
+  <div><p class="sub">Binance Futures • Verified Exact Data Parser (V22.4-QUOTA-PRO)</p></div>
+</div>
+<div class="range">VERIFIED PARSER ACTIVE</div>
+</header>
+
+<section class="search">
+<input id="coin" placeholder="Enter coin symbol e.g. BTC or 1000RATS..." autocomplete="off">
+<button id="search" class="search-btn">SEARCH & LOG</button>
+</section>
+<div id="status" class="status">Ready</div>
+
+<main id="records" class="records"></main>
+</div>
+
+<script>
+"use strict";
+const KEY="smart_money_v22_4_pro";
+const SM="https://www.binance.com/bapi/futures/v1/public";
+const FUT="https://fapi.binance.com";
+let records=load();
+const DEFAULT_INTERVAL = 30 * 60;
+const coin=document.getElementById("coin"), search=document.getElementById("search"), status=document.getElementById("status"), recordsEl=document.getElementById("records");
+
+function load(){
+  try{
+    const x=JSON.parse(localStorage.getItem(KEY)||"[]");
+    const now = Math.floor(Date.now() / 1000);
+    return Array.isArray(x)?x.map(r=>({
+      ...r,
+      intervalSec: r.intervalSec || DEFAULT_INTERVAL,
+      nextFetchTime: r.nextFetchTime || (now + (r.intervalSec || DEFAULT_INTERVAL)),
+      fetchedDone: r.fetchedDone || false
+    })):[];
+  }catch{return[]}
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(records))}
+function setStatus(t,c=""){status.textContent=t;status.className="status"+(c?" "+c:"")}
+function sym(v){v=String(v||"").trim().toUpperCase();if(!v)return"";return v.endsWith("USDT")?v:v+"USDT"}
+function n(v){v=Number(v);return Number.isFinite(v)?v:0}
+function compact(v){v=n(v);const a=Math.abs(v);if(a>=1e9)return(v/1e9).toFixed(2)+"B";if(a>=1e6)return(v/1e6).toFixed(2)+"M";if(a>=1e3)return(v/1e3).toFixed(2)+"K";return v.toFixed(2)}
+function price(v){v=n(v);if(v>=100)return v.toFixed(2);if(v>=1)return v.toFixed(4);if(v>=.01)return v.toFixed(6);return v.toFixed(8)}
+function pct(v){return n(v).toFixed(2)+"%"}
+
+async function req(url){const r=await fetch(url);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
+
+async function fetchData(symbol){
+const urls=[
+SM+"/future/smart-money/signal/overview?symbol="+encodeURIComponent(symbol),
+SM+"/future/smart-money/signal/details/stats?symbol="+encodeURIComponent(symbol)+"&timeRange=30m",
+FUT+"/fapi/v1/ticker/price?symbol="+encodeURIComponent(symbol),
+FUT+"/fapi/v1/ticker/24hr?symbol="+encodeURIComponent(symbol),
+FUT+"/fapi/v1/openInterest?symbol="+encodeURIComponent(symbol),
+FUT+"/fapi/v1/premiumIndex?symbol="+encodeURIComponent(symbol)
+];
+const [overview,stats30,priceData,volume,oi,funding]=await Promise.all(urls.map(req));
+return{symbol,overview,stats30,price:priceData,volume,openInterest:oi,funding,fetchedAt:Date.now()}
+}
+
+function model(d){
+const o=d.overview?.data||{}, s=d.stats30?.data||{};
+const current=n(d.price?.price), volume=n(d.volume?.quoteVolume);
+const priceChangePct=n(d.volume?.priceChangePercent);
+const oiQty=n(d.openInterest?.openInterest), oiUSDT=oiQty*current;
+const funding=n(d.funding?.lastFundingRate)*100;
+
+const longTraders = o.longTraders ?? o.longTradersCount ?? 0;
+const shortTraders = o.shortTraders ?? o.shortTradersCount ?? 0;
+const longEntry = price(o.longTradersAvgEntryPrice || 0);
+const shortEntry = price(o.shortTradersAvgEntryPrice || 0);
+const longProfitTraders = o.longProfitTraders ?? 0;
+const shortProfitTraders = o.shortProfitTraders ?? 0;
+const longProfitPct = n(longTraders) > 0 ? (n(longProfitTraders) / n(longTraders)) * 100 : 0;
+const shortProfitPct = n(shortTraders) > 0 ? (n(shortProfitTraders) / n(shortTraders)) * 100 : 0;
+
+const longTradersQty = n(o.longTradersQty || 0);
+const shortTradersQty = n(o.shortTradersQty || 0);
+const longTradersUSDT = longTradersQty * current;
+const shortTradersUSDT = shortTradersQty * current;
+const totalTradersUSDT = longTradersUSDT + shortTradersUSDT;
+
+const longWhales = o.longWhales ?? o.longWhalesCount ?? 0;
+const shortWhales = o.shortWhales ?? o.shortWhalesCount ?? 0;
+const longWhaleEntry = price(o.longWhalesAvgEntryPrice || 0);
+const shortWhaleEntry = price(o.shortWhalesAvgEntryPrice || 0);
+const longProfitWhales = o.longProfitWhales ?? 0;
+const shortProfitWhales = o.shortProfitWhales ?? 0;
+const longWhaleProfitPct = n(longWhales) > 0 ? (n(longProfitWhales) / n(longWhales)) * 100 : 0;
+const shortWhaleProfitPct = n(shortWhales) > 0 ? (n(shortProfitWhales) / n(shortWhales)) * 100 : 0;
+
+const longWhalesQty = n(o.longWhalesQty || 0);
+const shortWhalesQty = n(o.shortWhalesQty || 0);
+const longWhalesUSDT = longWhalesQty * current;
+const shortWhalesUSDT = shortWhalesQty * current;
+const totalWhalesUSDT = longWhalesUSDT + shortWhalesUSDT;
+
+return{
+ current, volume, priceChangePct, oiUSDT, funding,
+ 
+ longTraders, shortTraders,
+ totalTradersPos: compact(totalTradersUSDT),
+ longTradersPos: compact(longTradersUSDT), 
+ shortTradersPos: compact(shortTradersUSDT),
+ longEntry, shortEntry,
+ longProfitTraders, shortProfitTraders,
+ longProfitPct: pct(longProfitPct), shortProfitPct: pct(shortProfitPct),
+
+ longWhales, shortWhales,
+ totalWhalesPos: compact(totalWhalesUSDT),
+ longWhalesPos: compact(longWhalesUSDT), 
+ shortWhalesPos: compact(shortWhalesUSDT),
+ longWhaleEntry, shortWhaleEntry,
+ longProfitWhales, shortProfitWhales,
+ longWhaleProfitPct: pct(longWhaleProfitPct), shortWhaleProfitPct: pct(shortWhaleProfitPct),
+
+ l30Traders:`L ${s.longTraders ?? "-"} | S ${s.shortTraders ?? "-"}`,
+ l30Whales:`L ${s.longWhales ?? "-"} | S ${s.shortWhales ?? "-"}`,
+ l30Pos:`L ${compact(s.longPositions)} | S ${compact(s.shortPositions)}`,
+ l30Qty:`L ${compact(s.longQty)} | S ${compact(s.shortQty)}`
+};
+}
+
+function render(){
+if(!records.length){recordsEl.innerHTML='<div class="empty">No records found. Search for a coin symbol to build your logs.</div>';return}
+const now = Math.floor(Date.now() / 1000);
+
+recordsEl.innerHTML=records.map(r=>{
+const intervalSec = r.intervalSec || DEFAULT_INTERVAL;
+const timeLeft = Math.max(0, (r.nextFetchTime || (now + intervalSec)) - now);
+const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+const secs = String(timeLeft % 60).padStart(2, '0');
+const isFinished = timeLeft === 0 || r.fetchedDone;
+const hasMultipleLogs = r.logs && r.logs.length >= 2;
+const currentMinutesMin = intervalSec / 60;
+
+const rowsHtml = r.logs.map((log, idx)=>{
+const vm=log.viewModel;
+const isUp = vm.priceChangePct >= 0;
+return `<tr>
+  <td style="color:var(--muted)">#${r.logs.length - idx} <span style="font-size:10px;margin-left:4px">${new Date(log.fetchedAt).toLocaleTimeString()}</span></td>
+  <td class="${isUp?'up':'down'}">$${price(vm.current)} (${isUp?'+':''}${vm.priceChangePct.toFixed(2)}%)</td>
+  <td>${compact(vm.volume)}</td>
+  <td>${compact(vm.oiUSDT)}</td>
+  <td>${vm.funding.toFixed(4)}%</td>
+  
+  <td class="buy">${vm.longTraders}</td><td class="sell">${vm.shortTraders}</td>
+  <td class="total-col">${vm.totalTradersPos}</td>
+  <td class="buy">${vm.longTradersPos}</td><td class="sell">${vm.shortTradersPos}</td>
+  <td>${vm.longEntry}</td><td>${vm.shortEntry}</td>
+  <td class="pos">${vm.longProfitTraders} (${vm.longProfitPct})</td><td class="pos">${vm.shortProfitTraders} (${vm.shortProfitPct})</td>
+  
+  <td class="buy">${vm.longWhales}</td><td class="sell">${vm.shortWhales}</td>
+  <td class="total-col">${vm.totalWhalesPos}</td>
+  <td class="buy">${vm.longWhalesPos}</td><td class="sell">${vm.shortWhalesPos}</td>
+  <td>${vm.longWhaleEntry}</td><td>${vm.shortWhaleEntry}</td>
+  <td class="pos">${vm.longProfitWhales} (${vm.longWhaleProfitPct})</td><td class="pos">${vm.shortProfitWhales} (${vm.shortWhaleProfitPct})</td>
+  
+  <td>${vm.l30Traders}</td><td>${vm.l30Whales}</td><td>${vm.l30Pos}</td><td>${vm.l30Qty}</td>
+  <td>
+    <div class="actions-cell">
+      <button class="row-btn" onclick="deleteLog('${r.symbol}', ${idx})">DEL</button>
+    </div>
+  </td>
+</tr>`;
+}).join("");
+
+return `<article class="record-card" data-symbol="${r.symbol}">
+  <div class="record-header">
+    <h3 class="symbol-title">${r.symbol} <span style="font-size:12px;color:var(--muted);font-weight:normal">(${r.logs.length} Logs)</span></h3>
+    <div class="header-actions">
+      <div class="timer-control">
+        <span class="timer-badge ${isFinished?'finished':''}" id="timer-${r.symbol}">${isFinished ? '✨ READY' : `⏱ ${mins}:${secs}`}</span>
+        <select class="interval-select" onchange="changeInterval('${r.symbol}', this.value)">
+          <option value="5" ${currentMinutesMin===5?'selected':''}>5m</option>
+          <option value="10" ${currentMinutesMin===10?'selected':''}>10m</option>
+          <option value="20" ${currentMinutesMin===20?'selected':''}>20m</option>
+          <option value="30" ${currentMinutesMin===30?'selected':''}>30m</option>
+        </select>
+      </div>
+      <button class="small-btn gemini" onclick="copyToGemini('${r.symbol}')">✨ COPY TO GEMINI</button>
+      <button class="small-btn gemini-compare" ${hasMultipleLogs?'':'disabled'} onclick="copyToGeminiCompare('${r.symbol}')">📊 COMPARE (2 LOGS)</button>
+      <button class="small-btn fetch" onclick="resetAndFetch('${r.symbol}')">+ FETCH</button>
+      <button class="small-btn del" onclick="delCoin('${r.symbol}')">DELETE</button>
+    </div>
+  </div>
+  <div class="table-container">
+    <table class="logs-table">
+      <thead>
+        <tr>
+          <th>Time / Log</th>
+          <th>Price & 24h%</th>
+          <th>Volume</th>
+          <th>Open<br>Interest</th>
+          <th>Funding</th>
+          
+          <th style="color:var(--green)">Traders<br>(L)</th>
+          <th style="color:var(--red)">Traders<br>(S)</th>
+          <th class="total-col">Total<br>Traders Pos</th>
+          
+          <th style="color:var(--green)">Current Positions<br>(USDT) • Trader (L)</th>
+          <th style="color:var(--red)">Current Positions<br>(USDT) • Trader (S)</th>
+          
+          <th>Avg<br>Entry(L)</th>
+          <th>Avg<br>Entry(S)</th>
+          <th>Profit<br>Traders(L)</th>
+          <th>Profit<br>Traders(S)</th>
+          
+          <th style="color:var(--green)">Whales<br>(L)</th>
+          <th style="color:var(--red)">Whales<br>(S)</th>
+          <th class="total-col">Total<br>Whales Pos</th>
+          
+          <th style="color:var(--green)">Current Positions<br>(USDT) • Whale (L)</th>
+          <th style="color:var(--red)">Current Positions<br>(USDT) • Whale (S)</th>
+          
+          <th>Avg<br>Entry(L)</th>
+          <th>Avg<br>Entry(S)</th>
+          <th>Profit<br>Whales(L)</th>
+          <th>Profit<br>Whales(S)</th>
+          
+          <th>30m<br>T.Flow</th>
+          <th>30m<br>W.Flow</th>
+          <th>30m<br>Pos.Flow</th>
+          <th>30m<br>Qty.Flow</th>
+          <th>Act</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+  </div>
+</article>`;
+}).join("");
+}
+
+function changeInterval(symbol, minsVal){
+const r=records.find(x=>x.symbol===symbol);
+if(r){
+  const newSec = parseInt(minsVal) * 60;
+  r.intervalSec = newSec;
+  const now = Math.floor(Date.now() / 1000);
+  r.nextFetchTime = now + newSec;
+  r.fetchedDone = false;
+  save();render();
+  setStatus(`Timer interval for ${symbol} updated to ${minsVal} minutes.`,"ok");
+}
+}
+
+async function searchCoin(){
+const symbol=sym(coin.value);if(!symbol){setStatus("Please enter a valid coin symbol.","err");return}
+search.disabled=true;setStatus(`Fetching data for ${symbol}...`);
+try{
+const data=await fetchData(symbol);
+const vm=model(data);
+const logEntry={viewModel:vm, fetchedAt:Date.now()};
+let existing=records.find(x=>x.symbol===symbol);
+const now = Math.floor(Date.now() / 1000);
+if(existing){
+  existing.logs.unshift(logEntry);
+  const interval = existing.intervalSec || DEFAULT_INTERVAL;
+  existing.nextFetchTime = now + interval;
+  existing.fetchedDone = false;
+}else{
+  records.unshift({symbol, logs:[logEntry], intervalSec: DEFAULT_INTERVAL, nextFetchTime: now + DEFAULT_INTERVAL, fetchedDone: false});
+}
+save();render();coin.value="";setStatus(`${symbol} log added successfully.`,"ok");
+}catch(e){console.error(e);setStatus(`Failed to load ${symbol}: ${e.message}`,"err")}finally{search.disabled=false}
+}
+
+async function resetAndFetch(symbol){
+setStatus(`Fetching new log for ${symbol}...`);
+try{
+const data=await fetchData(symbol);
+const vm=model(data);
+const logEntry={viewModel:vm, fetchedAt:Date.now()};
+const existing=records.find(x=>x.symbol===symbol);
+const now = Math.floor(Date.now() / 1000);
+if(existing){
+  existing.logs.unshift(logEntry);
+  const interval = existing.intervalSec || DEFAULT_INTERVAL;
+  existing.nextFetchTime = now + interval;
+  existing.fetchedDone = false;
+  save();render();setStatus(`New log added for ${symbol}.`,"ok");
+}
+}catch(e){console.error(e);setStatus(`Failed: ${e.message}`,"err")}
+}
+
+function deleteLog(symbol, idx){
+if(!confirm("Delete this log row?"))return;
+const r=records.find(x=>x.symbol===symbol);
+if(r){r.logs.splice(idx,1);if(!r.logs.length)records=records.filter(x=>x.symbol!==symbol);save();render();setStatus("Log row deleted.","ok");}
+}
+
+function delCoin(symbol){
+if(!confirm(`Delete all logs for ${symbol}?`))return;
+records=records.filter(x=>x.symbol!==symbol);save();render();setStatus(`${symbol} deleted.`,"ok");
+}
+
+function copyToGemini(symbol){
+const r=records.find(x=>x.symbol===symbol);
+if(!r || !r.logs || !r.logs.length)return;
+const vm = r.logs[0].viewModel;
+
+const expertPrompt = `You are an expert Crypto Market Analyst, Quantitative Trader, Smart Money and Whale Flow specialist, focused on Binance Futures SCALPING.
+Analyze the supplied market data to identify the strongest SHORT or LONG opportunity.
+
+CORE RULES:
+- Analyze LONG and SHORT independently, then compare them.
+- Prioritize the last 30 minutes of Smart Money and Whale flow.
+- Evaluate Trader Count, Position Quantity, Average Entry, Whale Positioning, Open Interest, Funding Rate, and recent LONG/SHORT deltas together.
+- Distinguish between positioning and recent momentum.
+- Do NOT force a trade.
+- If signals conflict, risk/reward is poor, or data is insufficient, return NO_TRADE.
+- Never invent unavailable data or indicators.
+- LONG + SHORT + NEUTRAL probabilities must equal exactly 100%.
+- Respond ONLY in English.
+- Do NOT use JSON or brackets such as { } or [ ].
+
+ENTRY LOGIC:
+For the strongest setup, provide:
+Entry Zone
+Fast Entry for aggressive execution
+Confirmation Entry for safer execution
+Exact Entry Trigger
+Stop Loss based on trade invalidation
+TP1, TP2, TP3
+Risk/Reward Ratio
+Trade Invalidation
+Entry Quality: A+, A, B, C, or NO_SETUP
+The entry must be realistic for SCALPING and derived from the supplied data. Do not create arbitrary levels.
+If LONG and SHORT are both possible, select the one with the stronger combination of:
+Smart Money + Whale Flow + Recent 30M Momentum + OI/Funding + Risk/Reward.
+If there is no clear edge, use NO_TRADE.
+
+MARKET DATA SUPPLIED:
+Current Price: ${vm.current}
+24h Volume (USDT): ${vm.volume}
+Open Interest (USDT): ${vm.oiUSDT}
+Funding Rate: ${vm.funding}%
+Timeframe: 30m
+
+SMART TRADERS - OVERVIEW:
+Total Positions Value (USDT): ${vm.totalTradersPos}
+LONG Traders: ${vm.longTraders} (Value: ${vm.longTradersPos})
+SHORT Traders: ${vm.shortTraders} (Value: ${vm.shortTradersPos})
+Avg L Entry: ${vm.longEntry} | Avg S Entry: ${vm.shortEntry}
+Profitable L: ${vm.longProfitPct} | Profitable S: ${vm.shortProfitPct}
+
+WHALES - OVERVIEW:
+Total Positions Value (USDT): ${vm.totalWhalesPos}
+LONG Whales: ${vm.longWhales} (Value: ${vm.longWhalesPos})
+SHORT Whales: ${vm.shortWhales} (Value: ${vm.shortWhalesPos})
+Avg L Entry: ${vm.longWhaleEntry} | Avg S Entry: ${vm.shortWhaleEntry}
+Profitable L: ${vm.longWhaleProfitPct} | Profitable S: ${vm.shortWhaleProfitPct}
+
+LAST 30 MINUTES SMART MONEY FLOW:
+Traders Delta: ${vm.l30Traders}
+Whales Delta: ${vm.l30Whales}
+Positions Delta: ${vm.l30Pos}
+Whale Quantity Delta: ${vm.l30Qty}
+
+STRICT OUTPUT:
+=== 🎯 FINAL VERDICT ===
+Decision: TRADE / NO_TRADE
+Preferred Setup: LONG / SHORT / NONE
+Confidence: 0-100%
+Signal Strength: STRONG / MEDIUM / WEAK
+Entry Quality: A+ / A / B / C / NO_SETUP
+Primary Reason: One concise sentence
+
+=== 📊 PROBABILITIES ===
+LONG: X%
+SHORT: X%
+NEUTRAL: X%
+Total: 100%
+
+=== 🚀 SCALPING PLAN ===
+Setup: LONG / SHORT / NONE
+Status: AVAILABLE / WAIT_FOR_CONFIRMATION / NOT_AVAILABLE
+Entry Zone: Price - Price
+Fast Entry: Price
+Confirmation Entry: Price
+Trigger:
+Specific condition required to enter
+Stop Loss: Price
+TP1: Price
+TP2: Price
+TP3: Price
+Risk/Reward: 1:X
+Invalidation:
+Condition that cancels the setup
+
+=== 🟢 LONG vs 🔴 SHORT ===
+LONG Bias: STRONG / MEDIUM / WEAK
+LONG Reasons:
+• Reason
+• Reason
+SHORT Bias: STRONG / MEDIUM / WEAK
+SHORT Reasons:
+• Reason
+• Reason
+
+=== 🐋 SMART MONEY & WHALE FLOW ===
+Smart Traders: LONG / SHORT / NEUTRAL
+Whales: LONG / SHORT / NEUTRAL
+30M Trader Flow: LONG / SHORT / MIXED
+30M Whale Flow: LONG / SHORT / MIXED
+Position Flow: Brief explanation
+Buy/Sell Pressure: Brief explanation
+Accumulation/Distribution: ACCUMULATION / DISTRIBUTION / NEUTRAL
+
+=== ⚠️ RISKS ===
+Signal Conflicts: Brief explanation / NONE
+Main Risk: Brief explanation
+Squeeze Risk: LONG / SHORT / LOW / UNCLEAR
+
+=== 🧠 SCALPER ACTION ===
+Action: ENTER LONG / ENTER SHORT / WAIT FOR LONG CONFIRMATION / WAIT FOR SHORT CONFIRMATION / NO TRADE
+Execution:
+One concise sentence explaining exactly what the scalper should do.`;
+
+navigator.clipboard.writeText(expertPrompt).then(() => {
+  setStatus(`Enhanced Gemini prompt copied successfully (No symbol included).`,"ok");
+});
+}
+
+function copyToGeminiCompare(symbol){
+const r=records.find(x=>x.symbol===symbol);
+if(!r || !r.logs || r.logs.length < 2)return;
+const vm1 = r.logs[1].viewModel; 
+const vm2 = r.logs[0].viewModel; 
+
+const comparePrompt = `You are an expert Binance Futures SCALPING Decision Engine specializing in Smart Money, Whale Flow, and short-term LONG/SHORT trading.
+You will receive TWO analysis reports for the SAME asset.
+Compare them critically and produce ONE final trading decision.
+RULES:
+- Do not blindly trust either report.
+- Compare evidence, not just probabilities.
+- Give higher weight to recent 30M flow, Smart Money, Whale Flow, Position Delta, Open Interest, Funding, entry quality, and Risk/Reward.
+- Identify agreements and conflicts.
+- Never invent missing data.
+- Do NOT force a trade.
+- If evidence is unclear or conflicting, use WAIT_FOR_CONFIRMATION or NO_TRADE.
+- LONG + SHORT + NEUTRAL probabilities must equal exactly 100%.
+- Respond ONLY in English.
+- No JSON and no { } or [ ].
+- Analyze BOTH LONG and SHORT independently, then select the stronger setup.
+- For BOTH directions determine: Entry Zone, Fast Entry, Confirmation Entry, Entry Trigger, Stop Loss, TP1, TP2, TP3, Risk/Reward, Invalidation.
+- Use realistic levels from the supplied reports. Do not create arbitrary prices.
+
+=== 📋 REPORT 1 (PREVIOUS LOG) ===
+Current Price: ${vm1.current}
+24h Volume (USDT): ${vm1.volume}
+Open Interest (USDT): ${vm1.oiUSDT}
+Funding Rate: ${vm1.funding}%
+Timeframe: 30m
+
+SMART TRADERS - OVERVIEW:
+Total Positions Value (USDT): ${vm1.totalTradersPos}
+LONG Traders: ${vm1.longTraders} (Value: ${vm1.longTradersPos})
+SHORT Traders: ${vm1.shortTraders} (Value: ${vm1.shortTradersPos})
+Avg L Entry: ${vm1.longEntry} | Avg S Entry: ${vm1.shortEntry}
+Profitable L: ${vm1.longProfitPct} | Profitable S: ${vm1.shortProfitPct}
+
+WHALES - OVERVIEW:
+Total Positions Value (USDT): ${vm1.totalWhalesPos}
+LONG Whales: ${vm1.longWhales} (Value: ${vm1.longWhalesPos})
+SHORT Whales: ${vm1.shortWhales} (Value: ${vm1.shortWhalesPos})
+Avg L Entry: ${vm1.longWhaleEntry} | Avg S Entry: ${vm1.shortWhaleEntry}
+Profitable L: ${vm1.longWhaleProfitPct} | Profitable S: ${vm1.shortWhaleProfitPct}
+
+LAST 30 MINUTES SMART MONEY FLOW:
+Traders Delta: ${vm1.l30Traders}
+Whales Delta: ${vm1.l30Whales}
+Positions Delta: ${vm1.l30Pos}
+Whale Quantity Delta: ${vm1.l30Qty}
+
+=== 📋 REPORT 2 (CURRENT LOG) ===
+Current Price: ${vm2.current}
+24h Volume (USDT): ${vm2.volume}
+Open Interest (USDT): ${vm2.oiUSDT}
+Funding Rate: ${vm2.funding}%
+Timeframe: 30m
+
+SMART TRADERS - OVERVIEW:
+Total Positions Value (USDT): ${vm2.totalTradersPos}
+LONG Traders: ${vm2.longTraders} (Value: ${vm2.longTradersPos})
+SHORT Traders: ${vm2.shortTraders} (Value: ${vm2.shortTradersPos})
+Avg L Entry: ${vm2.longEntry} | Avg S Entry: ${vm2.shortEntry}
+Profitable L: ${vm2.longProfitPct} | Profitable S: ${vm2.shortProfitPct}
+
+WHALES - OVERVIEW:
+Total Positions Value (USDT): ${vm2.totalWhalesPos}
+LONG Whales: ${vm2.longWhales} (Value: ${vm2.longWhalesPos})
+SHORT Whales: ${vm2.shortWhales} (Value: ${vm2.shortWhalesPos})
+Avg L Entry: ${vm2.longWhaleEntry} | Avg S Entry: ${vm2.shortWhaleEntry}
+Profitable L: ${vm2.longWhaleProfitPct} | Profitable S: ${vm2.shortWhaleProfitPct}
+
+LAST 30 MINUTES SMART MONEY FLOW:
+Traders Delta: ${vm2.l30Traders}
+Whales Delta: ${vm2.l30Whales}
+Positions Delta: ${vm2.l30Pos}
+Whale Quantity Delta: ${vm2.l30Qty}
+
+STRICT OUTPUT:
+=== 🎯 FINAL DECISION ===
+Decision: LONG / SHORT / WAIT_FOR_CONFIRMATION / NO_TRADE
+Preferred Setup: LONG / SHORT / NONE
+Confidence: X%
+Signal Strength: STRONG / MEDIUM / WEAK
+Entry Quality: A+ / A / B / C / NO_SETUP
+Reason: One concise sentence
+
+=== 📊 PROBABILITIES ===
+LONG: X%
+SHORT: X%
+NEUTRAL: X%
+Total: 100%
+
+=== 🔄 REPORT COMPARISON ===
+Report 1: LONG / SHORT / NEUTRAL
+Report 2: LONG / SHORT / NEUTRAL
+Agreement: Brief conclusion
+Conflict: Brief conclusion
+Stronger Report: 1 / 2 / BOTH / NEITHER
+
+=== 🟢 LONG PLAN ===
+Status: AVAILABLE / WAIT / NOT_AVAILABLE
+Entry Zone: Price - Price
+Fast Entry: Price
+Confirmation Entry: Price
+Trigger: Condition
+Stop Loss: Price
+TP1: Price
+TP2: Price
+TP3: Price
+Risk/Reward: 1:X
+Invalidation: Condition
+
+=== 🔴 SHORT PLAN ===
+Status: AVAILABLE / WAIT / NOT_AVAILABLE
+Entry Zone: Price - Price
+Fast Entry: Price
+Confirmation Entry: Price
+Trigger: Condition
+Stop Loss: Price
+TP1: Price
+TP2: Price
+TP3: Price
+Risk/Reward: 1:X
+Invalidation: Condition
+
+=== 🐋 FLOW VERDICT ===
+Smart Money: LONG / SHORT / NEUTRAL
+Whales: LONG / SHORT / NEUTRAL
+30M Flow: LONG / SHORT / MIXED
+Buy/Sell Pressure: Brief conclusion
+Accumulation/Distribution: ACCUMULATION / DISTRIBUTION / NEUTRAL
+
+=== ⚠️ RISKS ===
+Main Conflict: Brief explanation / NONE
+Squeeze Risk: LONG / SHORT / LOW / UNCLEAR
+Main Risk: Brief explanation
+
+=== 🧠 SCALPER ACTION ===
+Action: ENTER LONG / ENTER SHORT / WAIT FOR LONG / WAIT FOR SHORT / NO TRADE
+Execution: One concise sentence describing exactly what to do.`;
+
+navigator.clipboard.writeText(comparePrompt).then(() => {
+  setStatus(`Comparison prompt copied successfully with both logs (No symbol included).`,"ok");
+});
+}
+
+setInterval(() => {
+  const now = Math.floor(Date.now() / 1000);
+  records.forEach(r => {
+    const interval = r.intervalSec || DEFAULT_INTERVAL;
+    if (!r.nextFetchTime) r.nextFetchTime = now + interval;
+
+    if (!r.fetchedDone && now >= r.nextFetchTime) {
+      r.fetchedDone = true;
+      fetchData(r.symbol).then(data => {
+        const vm = model(data);
+        r.logs.unshift({viewModel: vm, fetchedAt: Date.now()});
+        r.nextFetchTime = Math.floor(Date.now() / 1000) + (r.intervalSec || DEFAULT_INTERVAL);
+        r.fetchedDone = false;
+        save();
+        render();
+      }).catch(err => {
+        console.error("Auto fetch error for", r.symbol, err);
+        r.fetchedDone = false;
+        r.nextFetchTime = Math.floor(Date.now() / 1000) + 15;
+      });
+    } else if (!r.fetchedDone) {
+      const badge = document.getElementById(`timer-${r.symbol}`);
+      if (badge) {
+        const timeLeft = Math.max(0, r.nextFetchTime - now);
+        const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+        const secs = String(timeLeft % 60).padStart(2, '0');
+        badge.textContent = `⏱ ${mins}:${secs}`;
+      }
+    }
+  });
+}, 1000);
+
+search.addEventListener("click",searchCoin);
+coin.addEventListener("keydown",e=>{if(e.key==="Enter")searchCoin()});
+render();
+</script>
+</body>
+</html>
